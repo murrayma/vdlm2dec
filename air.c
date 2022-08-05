@@ -32,21 +32,11 @@ extern int nbch;
 extern pthread_barrier_t Bar1, Bar2;
 extern int gain;
 
-<<<<<<< Updated upstream
-unsigned int SDRINRATE = 6000000;
-unsigned int SDRCLK = 1500;
-
-unsigned uint64_t airspy_serial;
-=======
-<<<<<<< Updated upstream
-=======
 unsigned int SDRINRATE = 6000000;
 unsigned int SDRCLK = 1500;
 
 extern uint64_t airspy_serial;
 extern int airspy_biast_enable;
->>>>>>> Stashed changes
->>>>>>> Stashed changes
 unsigned int Fc;
 
 static struct airspy_device* device = NULL;
