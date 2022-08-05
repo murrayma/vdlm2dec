@@ -52,7 +52,15 @@ int ppm = 0;
 #endif
 #ifdef WITH_AIR
 int gain = 21;
+<<<<<<< Updated upstream
 uint64_t airspy_serial = 0;
+=======
+<<<<<<< Updated upstream
+=======
+uint64_t airspy_serial = 0;
+int airspy_biast_enable = 0;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 #endif
 
 int nbch;
@@ -121,7 +129,15 @@ int main(int argc, char **argv)
 	nbch = 0;
 	logfd = stdout;
 
+<<<<<<< Updated upstream
 	while ((c = getopt(argc, argv, "vqrp:g:k:l:JRj:i:GEUt:b:a:")) != EOF) {
+=======
+<<<<<<< Updated upstream
+	while ((c = getopt(argc, argv, "vqrp:g:l:JRj:i:GEUt:b:a:")) != EOF) {
+=======
+	while ((c = getopt(argc, argv, "vqrp:e:g:k:l:JRj:i:GEUt:b:a:")) != EOF) {
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 		switch (c) {
 		case 'v':
 			verbose = 2;
@@ -148,6 +164,9 @@ int main(int argc, char **argv)
 			break;
 #endif
 #ifdef WITH_AIR
+                case 'e':
+                        airspy_biast_enable = 1;
+                        break;
 		case 'g':
 			gain = atoi(optarg);
 			break;

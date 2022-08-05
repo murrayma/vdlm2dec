@@ -32,10 +32,21 @@ extern int nbch;
 extern pthread_barrier_t Bar1, Bar2;
 extern int gain;
 
+<<<<<<< Updated upstream
 unsigned int SDRINRATE = 6000000;
 unsigned int SDRCLK = 1500;
 
 unsigned uint64_t airspy_serial;
+=======
+<<<<<<< Updated upstream
+=======
+unsigned int SDRINRATE = 6000000;
+unsigned int SDRCLK = 1500;
+
+extern uint64_t airspy_serial;
+extern int airspy_biast_enable;
+>>>>>>> Stashed changes
+>>>>>>> Stashed changes
 unsigned int Fc;
 
 static struct airspy_device* device = NULL;
@@ -158,6 +169,11 @@ int initAirspy(char **argv, int optind, thread_param_t * param)
         result = airspy_set_linearity_gain(device, gain);
         if( result != AIRSPY_SUCCESS ) {
                 fprintf(stderr,"airspy_set_linearity_gain() failed: %s (%d)\n", airspy_error_name(result), result);
+        }
+
+        result = airspy_set_rf_bias(device, airspy_biast_enable);
+        if( result != AIRSPY_SUCCESS ) {
+                fprintf(stderr,"airspy_set_rf_Bias() failed: %s (%d)\n", airspy_error_name(result), result);
         }
 
 	Fc = chooseFc(minFc, maxFc);
