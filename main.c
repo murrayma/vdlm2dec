@@ -48,6 +48,7 @@ char *idstation = NULL ;
 FILE *logfd;
 
 #ifdef WITH_RTL
+char *rtl_dev = NULL;
 int gain = 450;
 int ppm = 0;
 #endif
@@ -56,7 +57,7 @@ int gain = 18;
 uint64_t airspy_serial = 0;
 #endif
 
-int nbch;
+int nbch = 0;
 thread_param_t tparam[MAXNBCHANNELS];
 pthread_barrier_t Bar1, Bar2;
 
@@ -114,8 +115,9 @@ int main(int argc, char **argv)
 	int n,c;
 	int res=-1;
 	struct sigaction sigact;
-        char sys_hostname[HOST_NAME_MAX+1];
-        char *lblf=NULL;
+	char sys_hostname[HOST_NAME_MAX+1];
+	char *lblf = NULL;
+	char *afreq = NULL;
 
         gethostname(sys_hostname, sizeof(sys_hostname));
         idstation = strndup(sys_hostname, MAX_ID_LEN);
@@ -123,7 +125,7 @@ int main(int argc, char **argv)
 	nbch = 0;
 	logfd = stdout;
 
-	while ((c = getopt(argc, argv, "vqrp:g:k:l:JRj:s:i:GEUb:a")) != EOF) {
+	while ((c = getopt(argc, argv, "vqr:p:g:k:l:JRj:s:i:GEUb:a")) != EOF) {
 		switch (c) {
 		case 'v':
 			verbose = 2;
@@ -140,7 +142,7 @@ int main(int argc, char **argv)
 			break;
 #ifdef WITH_RTL
 		case 'r':
-			res = initRtl(argv, optind, tparam);
+			rtl_dev = optarg;
 			break;
 		case 'p':
 			ppm = atoi(optarg);
@@ -193,17 +195,50 @@ int main(int argc, char **argv)
 
 		default:
 			usage();
-			return (1);
+			exit(1);
 		}
 	}
+
+	argc -= optind;
+
+	/* parse frequency args */
+        if (argc > MAXNBCHANNELS)
+                fprintf(stderr,
+                        "WARNING: too many frequencies, using only the first %d\n",
+                        MAXNBCHANNELS);
+
+        if (argc == 0) {
+                fprintf(stderr, "ERROR: Need at least one frequency\n\n");
+		usage();
+                exit(1);
+        }
+
+	while ((afreq = argv[optind]) && nbch < MAXNBCHANNELS) {
+		int freq = (int)(1000000 * atof(afreq));
+
+		if (freq < 118000000 || freq > 138000000) {
+			fprintf(stderr, "Ignoring invalid frequency %s\n", afreq);
+			optind++;
+			continue;
+		}
+
+		tparam[nbch].chn = nbch;
+		tparam[nbch].Fr = freq;
+
+		nbch++;
+		optind++;
+	};
 
 	if(jsonout || regout) 
 		verbose=0;
 
         build_label_filter(lblf);
 
+#ifdef WITH_RTL
+	res = initRtl(rtl_dev, tparam);
+#endif
 #ifdef WITH_AIR
-	res=initAirspy(argv, optind, tparam);
+	res = initAirspy(tparam);
 #endif
 
 	if (res) {

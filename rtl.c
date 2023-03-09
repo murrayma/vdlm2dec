@@ -49,6 +49,7 @@ int verbose_device_search(char *s)
 	int i, device_count, device, offset;
 	char *s2;
 	char vendor[256], product[256], serial[256];
+
 	device_count = rtlsdr_get_device_count();
 	if (!device_count) {
 		fprintf(stderr, "No supported devices found.\n");
@@ -156,6 +157,10 @@ static unsigned int chooseFc(unsigned int *Fd, const unsigned int nbch)
 			break;
 	}
 
+	if (verbose > 1)
+		fprintf(stderr, "Center frequency: %.3f MHz\n",
+				(float)(Fc / 1000000));
+
 	return Fc;
 }
 
@@ -183,19 +188,17 @@ int nearest_gain(int target_gain)
 	return close_gain;
 }
 
-int initRtl(char **argv, int optind, thread_param_t * param)
+int initRtl(char * rtldev, thread_param_t * param)
 {
 	int r, n;
 	int dev_index;
-	char *argF;
 	unsigned int Fd[MAXNBCHANNELS];
 
-	if (argv[optind] == NULL) {
-		fprintf(stderr, "Need device name or index (ex: 0) after -r\n");
-		exit(1);
+	for (int i = 0; i < MAXNBCHANNELS; i++) {
+		Fd[i] = param[i].Fr;
 	}
-	dev_index = verbose_device_search(argv[optind]);
-	optind++;
+
+	dev_index = verbose_device_search(rtldev);
 
 	r = rtlsdr_open(&dev, dev_index);
 	if (r < 0) {
@@ -213,29 +216,6 @@ int initRtl(char **argv, int optind, thread_param_t * param)
 		if (r < 0)
 			fprintf(stderr,
 				"WARNING: Failed to set freq. correction\n");
-	}
-
-	nbch = 0;
-	while ((argF = argv[optind]) && nbch < MAXNBCHANNELS) {
-		Fd[nbch] = (int)(1000000 * atof(argF));
-		optind++;
-		if (Fd[nbch] < 118000000 || Fd[nbch] > 138000000) {
-			fprintf(stderr, "WARNING: Invalid frequency %d\n",
-				Fd[nbch]);
-			continue;
-		}
-		param[nbch].chn = nbch;
-		param[nbch].Fr = Fd[nbch];
-		nbch++;
-	};
-	if (nbch > MAXNBCHANNELS)
-		fprintf(stderr,
-			"WARNING: too many frequencies, using only the first %d\n",
-			MAXNBCHANNELS);
-
-	if (nbch == 0) {
-		fprintf(stderr, "Need a least one frequency\n");
-		return 1;
 	}
 
 	Fc = chooseFc(Fd, nbch);
